@@ -3,48 +3,37 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Trình Soạn Thảo Email Cao Cấp (Chuẩn Word/Outlook)</title>
-  
-  <!-- Thẻ Open Graph giúp các nền tảng chat hiển thị tiêu đề và mô tả khi gửi link -->
-  <meta property="og:title" content="Trình Soạn Thảo Email Cao Cấp (Chuẩn Word/Outlook)" />
-  <meta property="og:description" content="Công cụ soạn thảo email chuyên nghiệp chuẩn Word và Outlook." />
-  <meta property="og:type" content="website" />
+    <title>Trình Soạn Thảo Email Cao Cấp (Chuẩn Word/Outlook/Teams)</title>
     <!-- Tailwind CSS -->
     <link
       href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
       rel="stylesheet"
     />
-    <!-- FontAwesome -->
+    <!-- FontAwesome Icons -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+
+    <!-- TẢI TINYMCE: Ưu tiên dùng folder local 'tinymce/', nếu lỗi tự động fallback sang CDN -->
+    <script
+      src="tinymce/tinymce.min.js"
+      onerror="
+        this.onerror = null;
+        this.src = 'https://cdn.jsdelivr.net/npm/tinymce@6/tinymce.min.js';
+      "
+    ></script>
+
     <style>
-      .tox-tinymce {
+      /* TIÊU DIỆT TRIỆT ĐỂ NÚT UPGRADE VÀ LOGO TINY */
+      .tox-promotion,
+      .tox-statusbar__branding {
+        display: none !important;
+      }
+      /* Cố định khung trình soạn thảo chuẩn rộng */
+      .tox.tox-tinymce {
+        width: 100% !important;
         border-radius: 0.5rem !important;
-        border-color: #d1d5db !important;
-      }
-      .tox .tox-toolbar-overlord,
-      .tox .tox-toolbar__primary {
-        background-color: #f9fafb !important;
-      }
-      .tox .tox-edit-area__iframe {
-        background-color: #ffffff !important;
-      }
-      /* Textarea dự phòng khi không tải được TinyMCE */
-      #editor-container.editor-fallback {
-        display: block;
-        width: 100%;
-        min-height: 350px;
-        padding: 12px;
-        border: 1px solid #d1d5db;
-        border-radius: 0.5rem;
-        background-color: #ffffff;
-        font-family: Arial, Helvetica, sans-serif;
-        font-size: 15px;
-        line-height: 1.6;
-        color: #333333;
-        resize: vertical;
       }
     </style>
   </head>
@@ -52,6 +41,7 @@
     <div
       class="max-w-5xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200"
     >
+      <!-- Header -->
       <div class="bg-blue-600 text-white p-6 flex justify-between items-center">
         <div>
           <h1 class="text-xl md:text-2xl font-bold flex items-center">
@@ -59,35 +49,37 @@
             Cấp
           </h1>
           <p class="text-blue-100 text-sm mt-1">
-            Soạn thảo, xem trước và xuất mã HTML chuẩn Outlook & Teams.
+            Đầy đủ font chữ, co giãn ảnh trực quan và chuyển đổi chuẩn
+            Outlook/Teams.
           </p>
         </div>
         <button
           type="button"
+          id="btn-clear"
           onclick="clearEditor()"
-          class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-300 text-xs md:text-sm font-semibold px-4 py-2 rounded-lg shadow transition flex items-center space-x-1"
+          title="Xóa toàn bộ nội dung"
+          class="flex items-center space-x-1.5 bg-red-50 hover:bg-red-600 text-red-600 hover:text-white border border-red-300 hover:border-red-600 text-sm font-semibold px-3 py-1.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
         >
           <i class="fa-solid fa-trash-can"></i>
-          <span>Xóa Nhanh</span>
+          <span>Dọn Dẹp Nhanh</span>
         </button>
       </div>
 
       <div class="p-6 space-y-6">
+        <!-- Khu vực soạn thảo -->
         <div>
-          <label class="block text-gray-700 font-semibold mb-2">
-            <i class="fa-solid fa-pen-nib text-blue-600 mr-1"></i> Soạn thảo nội
-            dung:
-          </label>
-          <!-- TinyMCE Editor -->
-          <div
-            id="editor-notice"
-            class="hidden mb-2 px-3 py-2 rounded-lg bg-red-50 border border-red-300 text-sm text-red-700"
-          ></div>
-          <textarea id="editor-container" style="height: 350px">
-Xin chào mentor, đây là nội dung email mẫu...</textarea
-          >
+          <div class="flex justify-between items-center mb-2">
+            <label class="text-gray-700 font-semibold">
+              <i class="fa-solid fa-pen-nib text-blue-600 mr-1"></i> Soạn thảo
+              nội dung (Thao tác hệt như Word / Outlook):
+            </label>
+          </div>
+          <textarea id="my-editor">
+            <p style="font-family: Arial; font-size: 15px;">Xin chào mentor, đây là nội dung email mẫu...</p>
+          </textarea>
         </div>
 
+        <!-- Nút Convert -->
         <div class="text-center pt-2">
           <button
             type="button"
@@ -95,14 +87,15 @@ Xin chào mentor, đây là nội dung email mẫu...</textarea
             class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-3 rounded-lg shadow-md transition duration-200 flex items-center justify-center mx-auto space-x-2"
           >
             <i class="fa-solid fa-wand-magic-sparkles"></i>
-            <span>Chuyển Đổi Mã HTML & Cập Nhật Xem Trước</span>
+            <span>Chuyển Đổi Mã HTML</span>
           </button>
         </div>
 
+        <!-- Khu vực kết quả -->
         <div
           class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-200"
         >
-          <!-- Outlook -->
+          <!-- Outlook HTML -->
           <div
             class="bg-gray-50 p-4 rounded-lg border border-gray-200 flex flex-col"
           >
@@ -111,33 +104,24 @@ Xin chào mentor, đây là nội dung email mẫu...</textarea
                 <i class="fa-brands fa-microsoft text-blue-600 mr-1"></i> Dạng
                 1: Outlook HTML
               </span>
-              <div class="space-x-1">
-                <button
-                  type="button"
-                  onclick="openPreview('outlook')"
-                  class="bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs px-2.5 py-1.5 rounded transition font-medium"
-                >
-                  <i class="fa-solid fa-eye mr-1"></i> Xem trước
-                </button>
-                <button
-                  type="button"
-                  onclick="copyToClipboard('outlook-output', 'btn-outlook')"
-                  id="btn-outlook"
-                  class="bg-gray-200 hover:bg-blue-600 hover:text-white text-gray-700 text-xs px-2.5 py-1.5 rounded transition font-medium"
-                >
-                  <i class="fa-regular fa-copy mr-1"></i> Copy
-                </button>
-              </div>
+              <button
+                type="button"
+                onclick="copyToClipboard('outlook-output', 'btn-outlook')"
+                id="btn-outlook"
+                class="bg-gray-200 hover:bg-blue-600 hover:text-white text-gray-700 text-xs px-3 py-1.5 rounded transition font-medium"
+              >
+                <i class="fa-regular fa-copy mr-1"></i> Copy HTML
+              </button>
             </div>
             <textarea
               id="outlook-output"
               readonly
               class="w-full h-40 p-3 text-xs font-mono bg-white border border-gray-300 rounded focus:outline-none resize-none"
-              placeholder="Bấm 'Chuyển Đổi' để lấy mã..."
+              placeholder="Bấm 'Chuyển Đổi' để lấy mã cho Outlook..."
             ></textarea>
           </div>
 
-          <!-- Teams -->
+          <!-- Teams HTML -->
           <div
             class="bg-gray-50 p-4 rounded-lg border border-gray-200 flex flex-col"
           >
@@ -146,462 +130,140 @@ Xin chào mentor, đây là nội dung email mẫu...</textarea
                 <i class="fa-brands fa-teamspeak text-purple-600 mr-1"></i> Dạng
                 2: Teams HTML
               </span>
-              <div class="space-x-1">
-                <button
-                  type="button"
-                  onclick="openPreview('teams')"
-                  class="bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs px-2.5 py-1.5 rounded transition font-medium"
-                >
-                  <i class="fa-solid fa-eye mr-1"></i> Xem trước
-                </button>
-                <button
-                  type="button"
-                  onclick="copyToClipboard('teams-output', 'btn-teams')"
-                  id="btn-teams"
-                  class="bg-gray-200 hover:bg-purple-600 hover:text-white text-gray-700 text-xs px-2.5 py-1.5 rounded transition font-medium"
-                >
-                  <i class="fa-regular fa-copy mr-1"></i> Copy
-                </button>
-              </div>
+              <button
+                type="button"
+                onclick="copyToClipboard('teams-output', 'btn-teams')"
+                id="btn-teams"
+                class="bg-gray-200 hover:bg-purple-600 hover:text-white text-gray-700 text-xs px-3 py-1.5 rounded transition font-medium"
+              >
+                <i class="fa-regular fa-copy mr-1"></i> Copy HTML
+              </button>
             </div>
             <textarea
               id="teams-output"
               readonly
               class="w-full h-40 p-3 text-xs font-mono bg-white border border-gray-300 rounded focus:outline-none resize-none"
-              placeholder="Bấm 'Chuyển Đổi' để lấy mã..."
+              placeholder="Bấm 'Chuyển Đổi' để lấy mã cho Teams..."
             ></textarea>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Modal Outlook -->
-    <div
-      id="modal-outlook"
-      class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50 p-4"
-    >
-      <div
-        class="bg-white w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden flex flex-col h-[85vh] border border-gray-300"
-      >
-        <div
-          class="bg-[#0078d4] text-white px-5 py-3 flex justify-between items-center shadow-md"
-        >
-          <div class="flex items-center space-x-3">
-            <i class="fa-brands fa-microsoft text-2xl"></i>
-            <div>
-              <h3 class="font-bold text-base leading-tight">
-                Outlook - Mô phỏng Trình Đọc Thư
-              </h3>
-              <p class="text-xs text-blue-100">Giao diện thực tế</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onclick="closeModal('modal-outlook')"
-            class="text-white hover:bg-blue-700 p-2 rounded-full transition w-9 h-9 flex items-center justify-center"
-          >
-            <i class="fa-solid fa-xmark text-lg"></i>
-          </button>
-        </div>
-        <div
-          class="bg-gray-100 px-6 py-4 border-b border-gray-200 text-sm space-y-1"
-        >
-          <div class="flex justify-between">
-            <span class="font-bold text-gray-900 text-base"
-              >HƯỚNG DẪN XIN ĐÁNH GIÁ KẾT QUẢ THỰC TẬP</span
-            >
-            <span class="text-xs text-gray-500">Hôm nay, 11:35 AM</span>
-          </div>
-          <div class="text-gray-600 text-xs">
-            <strong>Từ:</strong> mentor@fpt.com.vn
-          </div>
-        </div>
-        <div class="flex-1 bg-gray-200 p-6 overflow-y-auto flex justify-center">
-          <div
-            class="bg-white w-full max-w-[720px] shadow-lg rounded-md overflow-hidden min-h-full flex flex-col"
-          >
-            <iframe
-              id="iframe-outlook"
-              class="w-full flex-1 border-0 min-h-[450px]"
-              title="Outlook"
-            ></iframe>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal Teams -->
-    <div
-      id="modal-teams"
-      class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50 p-4"
-    >
-      <div
-        class="bg-[#f3f2f1] w-full max-w-4xl rounded-xl shadow-2xl overflow-hidden flex flex-col h-[85vh] border border-gray-300"
-      >
-        <div
-          class="bg-[#464eb8] text-white px-5 py-3 flex justify-between items-center shadow-md"
-        >
-          <div class="flex items-center space-x-3">
-            <i class="fa-brands fa-teamspeak text-2xl"></i>
-            <div>
-              <h3 class="font-bold text-base leading-tight">
-                Microsoft Teams - Mô phỏng Kênh Trò chuyện
-              </h3>
-              <p class="text-xs text-purple-200">Giao diện thực tế</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onclick="closeModal('modal-teams')"
-            class="text-white hover:bg-purple-700 p-2 rounded-full transition w-9 h-9 flex items-center justify-center"
-          >
-            <i class="fa-solid fa-xmark text-lg"></i>
-          </button>
-        </div>
-        <div class="flex-1 p-6 overflow-y-auto bg-white space-y-4">
-          <div class="flex items-start space-x-3">
-            <div
-              class="w-10 h-10 rounded-full bg-[#5b5fc7] text-white flex items-center justify-center font-bold text-sm shadow"
-            >
-              NK
-            </div>
-            <div class="flex-1">
-              <div class="flex items-center space-x-2 mb-1">
-                <span class="font-bold text-gray-900 text-sm"
-                  >Nguyễn Khánh Hòa (Mentor)</span
-                >
-                <span class="text-xs text-gray-500">Hôm nay lúc 11:35 AM</span>
-              </div>
-              <div
-                class="bg-[#f8f8f9] border border-gray-200 rounded-lg p-4 shadow-sm max-w-2xl"
-              >
-                <iframe
-                  id="iframe-teams"
-                  class="w-full border-0 bg-transparent min-h-[300px]"
-                  title="Teams"
-                ></iframe>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TinyMCE: ưu tiên bản local ./tinymce, nếu lỗi mới thử CDN -->
+    <!-- ================= CẤU HÌNH JAVASCRIPT & TINYMCE ================= -->
     <script>
-      var EDITOR_ID = "editor-container";
+      tinymce.init({
+        selector: "#my-editor",
+        height: 480,
+        plugins:
+          "preview searchreplace autolink directionality code visualblocks visualchars fullscreen image link media table charmap hr pagebreak nonbreaking anchor insertdatetime advlist lists wordcount help emoticons",
 
-      // Thứ tự thử nạp: file local -> CDN (dùng khi mở file không có thư mục tinymce hoặc CDN bị chặn)
-      var TINYMCE_SOURCES = [
-        "tinymce/tinymce.min.js",
-        "https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js",
-        "https://unpkg.com/tinymce@7/tinymce.min.js",
-      ];
+        // Chia thành 2 dòng rõ rệt để hiển thị đầy đủ 100% công cụ, không bị ẩn vào nút ...
+        toolbar1:
+          "undo redo | styles fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor removeformat | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent",
+        toolbar2:
+          "link image media table | charmap emoticons | hr pagebreak | fullscreen preview code",
+        toolbar_sticky: true,
 
-      function loadScript(src, onDone) {
-        var script = document.createElement("script");
-        script.src = src;
-        script.onload = onDone;
-        script.onerror = onDone;
-        document.head.appendChild(script);
-      }
+        // Giữ nguyên định dạng chuẩn khi paste từ Outlook/Word
+        paste_as_text: false,
+        paste_retain_style_properties: "all",
+        paste_webkit_styles: "all",
+        paste_merge_formats: true,
 
-      function showEditorNotice(message) {
-        var textarea = document.getElementById(EDITOR_ID);
-        if (textarea) textarea.classList.add("editor-fallback");
-        var notice = document.getElementById("editor-notice");
-        if (notice) {
-          notice.textContent = message;
-          notice.classList.remove("hidden");
-        }
-      }
+        // Hỗ trợ kéo thả / chọn ảnh và tự động chuyển sang Base64
+        automatic_uploads: true,
+        file_picker_types: "image",
+        file_picker_callback: function (cb, value, meta) {
+          var input = document.createElement("input");
+          input.setAttribute("type", "file");
+          input.setAttribute("accept", "image/*");
+          input.onchange = function () {
+            var file = this.files[0];
+            var reader = new FileReader();
+            reader.onload = function () {
+              var id = "blobid" + new Date().getTime();
+              var blobCache = tinymce.activeEditor.editorUpload.blobCache;
+              var base64 = reader.result.split(",")[1];
+              var blobInfo = blobCache.create(id, file, base64);
+              blobCache.add(blobInfo);
+              cb(blobInfo.blobUri(), { title: file.name });
+            };
+            reader.readAsDataURL(file);
+          };
+          input.click();
+        },
+        content_style:
+          "body { font-family: Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #333333; }",
+      });
 
-      function initEditor() {
-        try {
-          tinymce.init({
-            selector: "#" + EDITOR_ID,
-            license_key: "gpl",
-            height: 420,
-            menubar: "file edit view insert format tools table help",
-            branding: false,
-            promotion: false,
-            plugins:
-              "advlist anchor autolink charmap code directionality fullscreen help image insertdatetime link lists media preview searchreplace table visualblocks visualchars wordcount",
-            toolbar:
-              "undo redo | styles fontfamily fontsize | bold italic underline strikethrough | forecolor backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image media table | removeformat code preview fullscreen",
-            toolbar_mode: "wrap",
-            table_toolbar:
-              "tableprops tabledelete | tableinsertrowbefore tableinsertrowafter tabledeleterow | tableinsertcolbefore tableinsertcolafter tabledeletecol",
-            content_style:
-              "body { font-family: Arial, Helvetica, sans-serif; font-size: 15px; line-height: 1.6; color: #333333; margin: 10px; }",
-            init_instance_callback: function (editor) {
-              window.emailEditor = editor;
-            },
-          });
-        } catch (err) {
-          showEditorNotice("Lỗi khởi tạo TinyMCE: " + err.message);
-        }
-      }
-
-      function loadTinyMCE(index) {
-        if (window.tinymce) {
-          initEditor();
-          return;
-        }
-        if (index >= TINYMCE_SOURCES.length) {
-          showEditorNotice(
-            "Không tải được TinyMCE. Kiểm tra thư mục ./tinymce cạnh index.html hoặc kết nối mạng, rồi tải lại trang.",
-          );
-          return;
-        }
-        loadScript(TINYMCE_SOURCES[index], function () {
-          if (window.tinymce) {
-            initEditor();
-          } else {
-            loadTinyMCE(index + 1);
-          }
-        });
-      }
-
-      function getEditor() {
-        return window.tinymce ? tinymce.get(EDITOR_ID) : null;
-      }
-
-      function getEditorHtml() {
-        var editor = getEditor();
-        if (editor) return editor.getContent();
-        var textarea = document.getElementById(EDITOR_ID);
-        return textarea ? textarea.value : "";
-      }
-
-      function isEmptyHtml(html) {
-        var tmp = document.createElement("div");
-        tmp.innerHTML = html;
-        if (tmp.querySelector("img, table, hr, iframe, video, audio")) {
-          return false;
-        }
-        return !tmp.textContent.replace(/\u00a0/g, " ").trim();
-      }
-
-      // Chuẩn hóa text: bỏ &nbsp;, gộp khoảng trắng, cắt space thừa ở đầu/cuối dòng
-      function normalizeTeamsText(doc, root) {
-        var walker = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
-        var nodes = [];
-        while (walker.nextNode()) nodes.push(walker.currentNode);
-
-        nodes.forEach(function (node) {
-          var value = node.nodeValue
-            .replace(/\u00a0/g, " ")
-            .replace(/[ \t\r\n]+/g, " ");
-          var prev = node.previousSibling;
-          var next = node.nextSibling;
-
-          if ((!prev || prev.nodeName === "BR") && value.charAt(0) === " ") {
-            value = value.slice(1);
-          }
-          if ((!next || next.nodeName === "BR") && value.slice(-1) === " ") {
-            value = value.slice(0, -1);
-          }
-
-          // Xóa text node chỉ chứa khoảng trắng nằm giữa 2 <br> hoặc ở đầu/cuối
-          if (
-            !value.trim() &&
-            next &&
-            next.nodeName === "BR" &&
-            (!prev || prev.nodeName === "BR")
-          ) {
-            node.parentNode.removeChild(node);
-            return;
-          }
-          if (!value.trim() && (!prev || !next)) {
-            node.parentNode.removeChild(node);
-            return;
-          }
-          node.nodeValue = value;
-        });
-      }
-
-      // Bỏ <br> ở đầu/cuối và gộp các <br> liên tiếp (tối đa 1 dòng trống)
-      function trimBreaks(body) {
-        var edge = body.firstChild;
-        while (edge) {
-          if (edge.nodeName === "BR") body.removeChild(edge);
-          else if (edge.nodeType === 3 && !edge.nodeValue.trim())
-            body.removeChild(edge);
-          else break;
-          edge = body.firstChild;
-        }
-
-        edge = body.lastChild;
-        while (edge) {
-          if (edge.nodeName === "BR") body.removeChild(edge);
-          else if (edge.nodeType === 3 && !edge.nodeValue.trim())
-            body.removeChild(edge);
-          else break;
-          edge = body.lastChild;
-        }
-
-        var brCount = 0;
-        body.querySelectorAll("br").forEach(function (br) {
-          brCount =
-            br.previousSibling && br.previousSibling.nodeName === "BR"
-              ? brCount + 1
-              : 1;
-          if (brCount > 2) br.parentNode.removeChild(br);
-        });
-      }
-
+      // Hàm DOMParser bóc tách sạch hoàn toàn nền rác, sọc trắng/xám khi chuyển sang Teams
       function cleanHtmlForTeams(html) {
-        var doc = new DOMParser().parseFromString(html, "text/html");
-        var body = doc.body;
-
-        // 1. Bỏ màu nền và các thuộc tính riêng của trình soạn thảo
-        body.querySelectorAll("*").forEach(function (el) {
+        let parser = new DOMParser();
+        let doc = parser.parseFromString(html, "text/html");
+        doc.querySelectorAll("*").forEach(function (el) {
+          el.style.backgroundColor = "";
+          el.style.background = "";
           el.removeAttribute("bgcolor");
           el.removeAttribute("background");
-          el.removeAttribute("class");
-          el.removeAttribute("id");
-          el.style.removeProperty("background");
-          el.style.removeProperty("background-color");
-        });
-
-        // 2. Đổi các khối (p, div, heading...) thành dòng ngăn bằng <br>.
-        //    Teams tự thêm margin cho <p>/<div> nên giữ nguyên sẽ bị thừa khoảng trắng.
-        var blocks = Array.prototype.slice
-          .call(
-            body.querySelectorAll(
-              "p, div, h1, h2, h3, h4, h5, h6, pre, blockquote",
-            ),
-          )
-          .reverse(); // xử lý khối con trước để không làm hỏng cấu trúc
-
-        blocks.forEach(function (block) {
-          if (!block.parentNode) return;
-          if (block.closest("li, td, th")) return; // giữ nguyên list/bảng
-
-          var fragment = doc.createDocumentFragment();
-          var text = block.textContent.replace(/\u00a0/g, " ").trim();
-          var hasMedia = !!block.querySelector(
-            "img, table, ul, ol, iframe, video, audio, hr",
-          );
-
-          // Khối rỗng (ví dụ <p><br></p>) => đúng 1 dòng trống
-          if (!text && !hasMedia) {
-            fragment.appendChild(doc.createElement("br"));
-            block.parentNode.replaceChild(fragment, block);
-            return;
+          if (
+            el.tagName === "TABLE" ||
+            el.tagName === "TD" ||
+            el.tagName === "TH"
+          ) {
+            el.style.borderCollapse = "collapse";
           }
-
-          if (/^H[1-6]$/.test(block.tagName)) {
-            var strong = doc.createElement("strong");
-            while (block.firstChild) strong.appendChild(block.firstChild);
-            strong.querySelectorAll("*").forEach(function (el) {
-              el.style.removeProperty("font-size");
-              el.style.removeProperty("font-weight");
-            });
-            fragment.appendChild(strong);
-          } else {
-            while (block.firstChild) fragment.appendChild(block.firstChild);
-          }
-
-          fragment.appendChild(doc.createElement("br"));
-          block.parentNode.replaceChild(fragment, block);
         });
-
-        // 3. Dọn khoảng trắng trong text
-        normalizeTeamsText(doc, body);
-
-        // 4. Dọn <br> thừa
-        trimBreaks(body);
-
-        return body.innerHTML.trim();
+        return doc.body.innerHTML;
       }
 
-      function handleConvert(silent) {
-        var rawHtml = getEditorHtml();
-
-        if (!rawHtml.trim() || isEmptyHtml(rawHtml)) {
-          if (!silent) {
-            alert("Vui lòng nhập nội dung email trước khi chuyển đổi!");
-          }
-          return false;
+      function handleConvert() {
+        let rawHtml = tinymce.get("my-editor").getContent();
+        if (!rawHtml.trim()) {
+          alert("Vui lòng nhập nội dung email trước khi chuyển đổi!");
+          return;
         }
-
-        var outlookHtml =
+        let outlookHtml =
           '<div style="font-family: Arial, sans-serif; font-size: 15px; color: #333333; line-height: 1.6;">' +
           rawHtml +
           "</div>";
-        var teamsHtml =
-          "<div style=\"font-family: 'Segoe UI', Helvetica, sans-serif; font-size: 14px; color: #242424; line-height: 1.5;\">" +
-          cleanHtmlForTeams(rawHtml) +
+        let cleanTeamsHtml = cleanHtmlForTeams(rawHtml);
+        let teamsHtml =
+          "<div style=\"font-family: 'Segoe UI', Helvetica, sans-serif; font-size: 14px; color: #242424; line-height: 1.5; background-color: transparent;\">" +
+          cleanTeamsHtml +
           "</div>";
-
         document.getElementById("outlook-output").value = outlookHtml;
         document.getElementById("teams-output").value = teamsHtml;
-        return true;
-      }
-
-      function openPreview(type) {
-        if (!handleConvert()) return;
-
-        var rawHtml = getEditorHtml();
-        if (type === "outlook") {
-          let modal = document.getElementById("modal-outlook");
-          modal.classList.remove("hidden");
-          modal.classList.add("flex");
-          let iframe = document.getElementById("iframe-outlook");
-          let doc = iframe.contentDocument || iframe.contentWindow.document;
-          doc.open();
-          doc.write(
-            "<html><head><style>body { font-family: Arial, sans-serif; font-size: 15px; color: #333; padding: 20px; margin: 0; line-height: 1.6; }</style></head><body>" +
-              rawHtml +
-              "</body></html>",
-          );
-          doc.close();
-        } else if (type === "teams") {
-          let modal = document.getElementById("modal-teams");
-          modal.classList.remove("hidden");
-          modal.classList.add("flex");
-          let iframe = document.getElementById("iframe-teams");
-          let cleanPreviewHtml = cleanHtmlForTeams(rawHtml);
-          let doc = iframe.contentDocument || iframe.contentWindow.document;
-          doc.open();
-          doc.write(
-            '<html><head><style>body { font-family: "Segoe UI", sans-serif; font-size: 14px; color: #242424; margin: 0; line-height: 1.5; background: transparent; }</style></head><body style="background: transparent;">' +
-              cleanPreviewHtml +
-              "</body></html>",
-          );
-          doc.close();
-        }
-      }
-
-      function closeModal(modalId) {
-        let modal = document.getElementById(modalId);
-        modal.classList.add("hidden");
-        modal.classList.remove("flex");
       }
 
       function clearEditor() {
-        var editor = getEditor();
-        var textarea = document.getElementById(EDITOR_ID);
-        var currentText = editor
-          ? editor.getContent({ format: "text" })
-          : textarea
-            ? textarea.value
-            : "";
-        if (!currentText.trim()) return;
+        if (!tinymce.get("my-editor").getContent().trim()) return;
         if (
           !confirm(
             "Bạn có chắc muốn xóa toàn bộ nội dung trong ô soạn thảo không?",
           )
         )
           return;
-        if (editor) editor.setContent("");
-        else if (textarea) textarea.value = "";
+        tinymce.get("my-editor").setContent("");
+
+        let btn = document.getElementById("btn-clear");
+        let originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-check"></i><span>Đã Dọn!</span>';
+        btn.classList.add("bg-green-600", "text-white", "border-green-600");
+        btn.classList.remove("bg-red-50", "text-red-600", "border-red-300");
+        setTimeout(function () {
+          btn.innerHTML = originalHTML;
+          btn.classList.remove(
+            "bg-green-600",
+            "text-white",
+            "border-green-600",
+          );
+          btn.classList.add("bg-red-50", "text-red-600", "border-red-300");
+        }, 2000);
       }
 
       function copyToClipboard(elementId, buttonId) {
-        handleConvert(true);
+        handleConvert();
         let textarea = document.getElementById(elementId);
         if (!textarea.value) {
           alert("Chưa có mã HTML! Vui lòng soạn nội dung trước.");
@@ -618,9 +280,6 @@ Xin chào mentor, đây là nội dung email mẫu...</textarea
           btn.classList.remove("bg-green-600", "text-white");
         }, 2000);
       }
-
-      // Bắt đầu nạp TinyMCE sau khi đã khai báo xong các hàm
-      loadTinyMCE(0);
     </script>
   </body>
 </html>
